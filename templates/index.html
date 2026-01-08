@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scholar Sync | AI Study Ally</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #05070a; color: #e2e8f0; }
+        .bento-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; }
+        .scholar-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 24px; transition: all 0.3s ease; }
+        .scholar-card:hover { border-color: rgba(96, 165, 250, 0.3); background: rgba(15, 23, 42, 0.8); }
+        .typewriter-cursor::after { content: '|'; animation: blink 0.8s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-6 max-w-7xl mx-auto">
+
+    <header class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Scholar Sync</h1>
+            <p class="text-slate-500 text-sm tracking-wide uppercase">Advanced Research & Study Engine</p>
+        </div>
+        <div id="statusIndicator" class="px-4 py-2 rounded-full border border-slate-800 text-[10px] font-bold text-slate-400 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-slate-600"></span> STANDBY
+        </div>
+    </header>
+
+    <div class="bento-grid flex-1 overflow-hidden h-[80vh]">
+        <div class="col-span-12 md:col-span-4 flex flex-col gap-6">
+            <div class="scholar-card p-6 flex-1 flex flex-col justify-center items-center text-center border-dashed border-2 border-slate-800 hover:border-blue-500/40">
+                <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-4">📚</div>
+                <h3 class="font-semibold mb-2">Knowledge Base</h3>
+                <p class="text-xs text-slate-500 mb-6 px-4">Upload research papers or notes to begin the deep-sync process.</p>
+                
+                <input type="file" id="pdfInput" class="hidden" accept="application/pdf">
+                <label for="pdfInput" class="w-full bg-white text-black font-bold py-3 rounded-xl cursor-pointer hover:bg-slate-200 transition-all active:scale-95 text-sm">
+                    Select Document
+                </label>
+                <button onclick="uploadPDF()" id="syncBtn" class="w-full mt-3 bg-slate-800 hover:bg-slate-700 py-3 rounded-xl text-sm font-semibold transition-all">
+                    Sync to Scholar
+                </button>
+            </div>
+        </div>
+
+        <div class="col-span-12 md:col-span-8 flex flex-col h-full overflow-hidden">
+            <div class="scholar-card flex flex-col h-full">
+                <div id="chatBox" class="flex-1 overflow-y-auto p-8 flex flex-col gap-6 no-scrollbar">
+                    <div class="flex flex-col gap-2">
+                        <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Scholar AI</span>
+                        <div class="bg-blue-500/5 p-5 rounded-2xl rounded-tl-none border border-blue-500/10 max-w-[90%] text-sm leading-relaxed">
+                            Upload a PDF and ask me anything. I will extract citations, summarize complex topics, and help you study without any messy formatting.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-black/20 border-t border-white/5">
+                    <div class="flex gap-3 items-center bg-slate-900/50 p-2 rounded-2xl border border-slate-800 focus-within:border-blue-500/50 transition-all">
+                        <input type="text" id="questionInput" placeholder="Enter your research query..." 
+                               class="flex-1 bg-transparent border-none outline-none px-4 py-3 text-sm placeholder-slate-600">
+                        <button onclick="askQuestion()" class="bg-blue-600 p-3 rounded-xl hover:bg-blue-500 transition-all active:scale-90">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        
+        // --- TYPEWRITER EFFECT + FORMAT CLEANER ---
+        async function typeWriter(element, text) {
+            // Remove markdown stars (e.g., **text** -> text)
+            const cleanText = text.replace(/\*\*/g, '').replace(/###/g, '').trim();
+            let i = 0;
+            element.classList.add('typewriter-cursor');
+            
+            return new Promise(resolve => {
+                function type() {
+                    if (i < cleanText.length) {
+                        element.innerHTML += cleanText.charAt(i);
+                        i++;
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                        setTimeout(type, 15); // Adjust speed here
+                    } else {
+                        element.classList.remove('typewriter-cursor');
+                        resolve();
+                    }
+                }
+                type();
+            });
+        }
+
+        function createMessage(sender) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex flex-col gap-2 ${sender === 'user' ? 'items-end' : 'items-start'}`;
+            
+            const label = document.createElement('span');
+            label.className = `text-[10px] font-bold uppercase tracking-widest ${sender === 'user' ? 'text-slate-500' : 'text-blue-400'}`;
+            label.innerText = sender === 'user' ? 'Research Request' : 'Scholar AI';
+            
+            const msg = document.createElement('div');
+            msg.className = `p-5 rounded-2xl text-sm leading-relaxed max-w-[90%] ${
+                sender === 'user' 
+                ? 'bg-slate-800 text-slate-100 rounded-tr-none' 
+                : 'bg-blue-500/5 border border-blue-500/10 text-blue-50 rounded-tl-none'
+            }`;
+            
+            wrapper.appendChild(label);
+            wrapper.appendChild(msg);
+            chatBox.appendChild(wrapper);
+            return msg;
+        }
+
+        async function askQuestion() {
+            const input = document.getElementById('questionInput');
+            const question = input.value.trim();
+            if (!question) return;
+
+            const userMsg = createMessage('user');
+            userMsg.innerText = question;
+            input.value = '';
+
+            const botMsg = createMessage('bot');
+            botMsg.innerText = "Processing...";
+
+            try {
+                const res = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question })
+                });
+                const data = await res.json();
+                botMsg.innerText = ""; // Clear "Processing"
+                
+                await typeWriter(botMsg, data.answer);
+            } catch (err) {
+                botMsg.innerText = "Error syncing with brain: " + err.message;
+            }
+        }
+
+        async function uploadPDF() {
+            const fileInput = document.getElementById('pdfInput');
+            if (!fileInput.files[0]) return;
+
+            const status = document.getElementById('statusIndicator');
+            status.innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> SYNCING`;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const res = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                status.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> SYNC COMPLETE`;
+                
+                const welcomeMsg = createMessage('bot');
+                await typeWriter(welcomeMsg, `I've successfully mapped "${fileInput.files[0].name}". How can I help with your studies?`);
+            } catch (err) {
+                status.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> SYNC FAILED`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 
 **OVERVIEW**
 
-Scholar Sync is a high-end academic research tool designed to transform static PDF documents into interactive, searchable knowledge bases. By leveraging Retrieval-Augmented Generation (RAG) through Google’s Gemini 1.5 Flash, this application allows students and researchers to extract precise information from complex documents with a sleek, distraction-free interface.
+Scholar Sync is a high-end academic research tool designed to transform static PDF documents into interactive, searchable knowledge bases. By leveraging Retrieval-Augmented Generation (RAG) through Google’s Gemini 2.5 Flash, this application allows students and researchers to extract precise information from complex documents with a sleek, distraction-free interface.
 
 ---
 
@@ -54,6 +54,6 @@ python app.py
 2. Chunking: Recursive text splitters break the document into 2000-character segments.
 3. Embedding: The Google text-embedding-004 model converts text into vectors.
 4. Storage: ChromaDB stores these vectors locally on your machine.
-5. Generation: When a question is asked, Gemini 1.5 Flash uses the retrieved chunks to write a human-like response.
+5. Generation: When a question is asked, Gemini 2.5 Flash uses the retrieved chunks to write a human-like response.
 
 ---
